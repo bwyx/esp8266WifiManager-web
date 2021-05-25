@@ -1,0 +1,14 @@
+services:
+  web:
+    image: node:16-alpine
+    command: >
+      sh -c "
+        cd /@dev &&
+        npm run dev
+      "
+    environment:
+      - TAILWIND_DISABLE_TOUCH=true
+    volumes:
+      - .:/@dev
+    ports:
+      - 3000:443
