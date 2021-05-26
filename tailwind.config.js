@@ -20,7 +20,7 @@ module.exports = {
         base: ".9375rem",
       },
       fontFamily: {
-        sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        // sans: ["Inter", ...defaultTheme.fontFamily.sans],
       },
       borderRadius: {
         none: "0px",

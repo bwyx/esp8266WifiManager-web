@@ -90,7 +90,7 @@ export default function Home() {
   const reboot = () => {
     setModalLoading(true);
 
-    fetch("/api/reboot", {
+    fetch(config.ENDPOINT_REBOOT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -188,7 +188,7 @@ export default function Home() {
             <h3 className="text-gray-900 font-medium text-lg mx-5 text-left">
               {formData.ssid}
             </h3>
-            <div className="flex items-center text-xs tracking-wider text-green-500 pb-3 mx-5">
+            <div className="flex items-center text-xs font-medium tracking-wider text-green-500 pb-3 mx-5">
               <Icon className="w-4 h-4 mb-0.5 mr-1" icon={ICONS.TICK} />
               SAVED
             </div>
@@ -203,7 +203,7 @@ export default function Home() {
                 type="reset"
                 className="px-5 py-3 text-sm text-center bg-white rounded-none focus:outline-none focus:bg-gray-200 hover:bg-gray-100"
               >
-                Choose to another network
+                Choose another network
               </button>
               <button
                 onClick={() => reboot()}
@@ -227,7 +227,7 @@ export default function Home() {
 
             {isSecured(formData.secure) ? (
               <>
-                <div className="flex items-center text-xs tracking-wider text-green-500 pb-3 mx-5">
+                <div className="flex items-center text-xs font-medium tracking-wider text-green-500 pb-3 mx-5">
                   <Icon className="w-4 h-4 mb-0.5 mr-1" icon={ICONS.LOCK} />
                   SECURED
                 </div>
@@ -238,18 +238,7 @@ export default function Home() {
                   <label className="hidden">Passphrase</label>
                   <div className="flex mt-1 rounded-md shadow-sm">
                     <span className="inline-flex items-center px-3 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M7.61256 8.3869C5.62113 8.3869 4.00049 10.0075 4.00049 11.999C4.00049 13.9918 5.62113 15.6124 7.61256 15.6124C9.24015 15.6124 10.6039 14.5237 11.0538 13.0405H13.9868V14.5709C13.9868 15.1458 14.4534 15.6124 15.0284 15.6124C15.6033 15.6124 16.0699 15.1458 16.0699 14.5709V13.0405H17.9169V14.5709C17.9169 15.1458 18.3835 15.6124 18.9585 15.6124C19.5334 15.6124 20 15.1458 20 14.5709V11.999C20 11.424 19.5334 10.9574 18.9585 10.9574H11.0538C10.6039 9.47566 9.24015 8.3869 7.61256 8.3869ZM7.6127 10.4699C8.45566 10.4699 9.14308 11.1559 9.14308 12.0002C9.14308 12.8432 8.45566 13.5292 7.6127 13.5292C6.76975 13.5292 6.08233 12.8432 6.08233 12.0002C6.08233 11.1559 6.76975 10.4699 7.6127 10.4699Z"
-                          fill="currentColor"
-                        />
-                      </svg>
+                      <Icon icon={ICONS.KEY} />
                     </span>
                     <input
                       ref={inputPassphrase}
@@ -263,7 +252,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                <div className="flex items-center text-xs tracking-wider text-yellow-500 pb-3 mx-5">
+                <div className="flex items-center text-xs font-medium tracking-wider text-yellow-500 pb-3 mx-5">
                   <Icon className="w-4 h-4 mb-0.5 mr-1" icon={ICONS.UNLOCK} />
                   OPEN
                 </div>
@@ -294,15 +283,6 @@ export default function Home() {
           </form>
         )}
       </Modal>
-      {/* <Modal
-        isOpen={true}
-        title="Reboot now?"
-        handleClose={closeModal}
-        description="Enter the network security key."
-        titleStyle="left"
-      >
-        <div>ok</div>
-      </Modal> */}
     </>
   );
 }
