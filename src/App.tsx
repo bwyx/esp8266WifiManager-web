@@ -50,19 +50,14 @@ const Loader = () => (
 );
 
 export default function Home() {
-  let eventSource: EventSource;
-
   const inputPassphrase = useRef<HTMLInputElement>(null);
   const { data: networks, error } = useSWR(config.ENDPOINT_SCAN, fetcher);
 
-  const [isListening, setListening] = useState(false);
-  const [isConnected, setConnected] = useState(false);
   const [isModalLoading, setModalLoading] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
-
-  const [APData, setAPData] = useState({
-    ssid: "",
-    ipAddress: "",
+  const [credential, setCredential] = useState({
+    submitted: false,
+    success: false,
   });
 
   const [formData, setformData] = useState<IForm>({
@@ -83,10 +78,25 @@ export default function Home() {
   const closeModal = () => {
     setModalOpen(false);
     setformData({ ...formData, psk: "" });
+
     setTimeout(() => {
-      setAPData({ ssid: "", ipAddress: "" });
-      setConnected(false);
+      setCredential({
+        submitted: false,
+        success: false,
+      });
     }, 200);
+  };
+
+  const reboot = () => {
+    setModalLoading(true);
+
+    fetch("/api/reboot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: null,
+    });
   };
 
   const handlePassphraseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +107,7 @@ export default function Home() {
     const { ssid, psk, secure } = formData;
     const data = isSecured(secure) ? { ssid, psk } : { ssid };
 
+    setModalLoading(true);
     fetch(config.ENDPOINT_CONNECT, {
       method: "POST",
       headers: {
@@ -106,22 +117,17 @@ export default function Home() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setModalLoading(true);
+        setCredential({
+          submitted: true,
+          success: data.success,
+        });
         console.log("Success:", data);
+        setModalLoading(false);
       })
       .catch((error) => {
         console.error("Error:", error);
+        setModalLoading(false);
       });
-  };
-
-  const onSTAConnected = (e: MessageEvent) => {
-    setAPData(JSON.parse(e.data));
-    setConnected(true);
-    setModalLoading(false);
-  };
-
-  const onSTADisconnected = (e: MessageEvent) => {
-    console.log(e.data);
   };
 
   useEffect(() => {
@@ -131,36 +137,6 @@ export default function Home() {
       }
     }, 100);
   }, [isModalOpen]);
-
-  useEffect(() => {
-    if (!!window.EventSource && !isListening) {
-      eventSource = new EventSource("/events");
-
-      eventSource.onopen = (e) => setListening(true);
-
-      eventSource.addEventListener(
-        "STAConnected",
-        onSTAConnected as EventListener
-      );
-
-      eventSource.addEventListener(
-        "STADisconnected",
-        onSTADisconnected as EventListener
-      );
-
-      eventSource.onmessage = (e) => console.log(e);
-
-      eventSource.onerror = (e) => console.error(e);
-    }
-
-    return () => {
-      if (isListening) {
-        eventSource.close();
-        setListening(false);
-        console.log("event closed!!");
-      }
-    };
-  }, []);
 
   if (error) return <div>failed to load</div>;
 
@@ -202,28 +178,23 @@ export default function Home() {
           )}
         </ul>
       </div>
-      <Modal
-        isOpen={isModalOpen}
-        handleClose={
-          isModalLoading || isConnected ? () => console.log("ok") : closeModal
-        }
-      >
+      <Modal isOpen={isModalOpen} handleClose={closeModal}>
         {isModalLoading ? (
           <div className="flex items-center justify-center text-white">
             <Loader />
           </div>
-        ) : isConnected ? (
+        ) : credential.submitted ? (
           <div className="pt-5 bg-white rounded-xl rounded-b-2xl">
             <h3 className="text-gray-900 font-medium text-lg mx-5 text-left">
-              {APData.ssid}
+              {formData.ssid}
             </h3>
             <div className="flex items-center text-xs tracking-wider text-green-500 pb-3 mx-5">
               <Icon className="w-4 h-4 mb-0.5 mr-1" icon={ICONS.TICK} />
-              CONNECTED
+              SAVED
             </div>
             <p className="mx-5 text-gray-400">
-              Successfully connected. <br />
-              IP Address: {APData.ipAddress === "" ? "..." : APData.ipAddress}
+              Wifi credential successfully saved. Reboot to connect to the
+              network.
             </p>
 
             <div className="flex flex-col mt-5 border-t border-t-gray-300">
@@ -232,9 +203,10 @@ export default function Home() {
                 type="reset"
                 className="px-5 py-3 text-sm text-center bg-white rounded-none focus:outline-none focus:bg-gray-200 hover:bg-gray-100"
               >
-                Choose to Another Network
+                Choose to another network
               </button>
               <button
+                onClick={() => reboot()}
                 type="button"
                 className="px-5 py-3 text-sm text-center font-medium text-indigo-500 bg-white rounded-none rounded-b-xl border-t focus:outline-none focus:bg-gray-200 hover:bg-gray-100"
               >
@@ -314,11 +286,9 @@ export default function Home() {
               <button
                 type="submit"
                 style={{ flexBasis: "50%" }}
-                className={`${
-                  isListening ? "" : "pointer-events-none text-opacity-50"
-                } flex justify-center px-5 py-3 text-sm font-medium text-indigo-500 bg-white border-l rounded-none rounded-br-xl focus:outline-none focus:bg-gray-200 hover:bg-gray-100`}
+                className="flex justify-center px-5 py-3 text-sm font-medium text-indigo-500 bg-white border-l rounded-none rounded-br-xl focus:outline-none focus:bg-gray-200 hover:bg-gray-100"
               >
-                {isListening ? "Connect" : <Loader />}
+                Connect
               </button>
             </div>
           </form>
